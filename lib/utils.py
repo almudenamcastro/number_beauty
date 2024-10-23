@@ -306,7 +306,6 @@ class Explainer():
             str += 'Este número es muy, pero que muy bonito\n'
         elif predicted > expected and std_dev < 0.20:
             str+='Este número es bastante bonito, y se espera que obtenga más ventas que la media\n'
-        
         elif predicted < 0.15 and std_dev < 0.15: 
             str+='Este número es un adefesio. La gente no lo quiere ni regalao\n'
         elif predicted < (expected - 0.2) and std_dev < 0.2:
