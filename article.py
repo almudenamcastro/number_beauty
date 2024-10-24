@@ -1,5 +1,7 @@
 import streamlit as st
- 
+from lib.utils import Stats
+
+stats = Stats() 
 st.markdown('''
 # Los números feos de la lotería
 
@@ -20,3 +22,14 @@ st.markdown('''
 #### El 13, un número de la buena suerte:
        
 ''')
+st.write("")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown('**Números acados en 13**')
+    st.write('¡Se venden casi todo!')
+    st.pyplot(stats.plot('ends_13', 'Termina en 13','x'))
+with col2:
+    st.markdown('**Números que empiezan en 13**')
+    st.write('Se venden en un 90%')
+    st.pyplot(stats.plot('starts_13', 'Empieza en 13', 'x'))

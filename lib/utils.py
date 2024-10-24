@@ -276,9 +276,10 @@ class Explainer():
                                             'Es una fecha', 'Es palíndromo', 'Es un código postal', 'Es una serie',
                                             'Tiene un dígito repetido 2 veces seguidas', 'Tiene un dígito repetido 3 veces seguidas', 'Tiene un dígito repetido 4 veces seguidas','Tiene un dígito repetido 5 veces seguidas']
                                      })
+        self.predicted = self.xgb_model.predict(self.features)
     def beauty_rating(self,n): 
         
-        predicted = self.xgb_model.predict(self.features)[n]*100
+        predicted = self.predicted[n]*100
         expected = self.shap_values.base_values[0]*100
         past_sales = self.sales['mean'].iloc[n]
         std_dev = self.sales['std'].iloc[n]
@@ -321,7 +322,7 @@ class Explainer():
                     b = 'disminuye'
                 else:
                     b = 'aumenta'
-                str += f'- {a}{self.features_spanish.loc[top.index[i], 'spa']}. Esto {b} las ventas esperadas en un {top['coef'].iloc[i]:.2f} %\n'
+                str += f'- {a}{self.features_spanish.loc[top.index[i], 'spa']}. Esto {b} las ventas esperadas en un {top['impact'].iloc[i]:.2f} %\n'
         else:
             str += 'No tiene ninguna característica particular'
         return str        
@@ -329,9 +330,27 @@ class Explainer():
         plot = shap.plots.waterfall(self.shap_values[n])
         return plot
 
-
-
-
+class Stats():
+    def __init__(self):
+        self.df = pd.concat([pd.read_csv('data/nr_beauty_metrics.csv', dtype={'str_n':str}), pd.read_csv('data/lottery_nr_sales.csv')], axis=1)
+  
+    def plot(self, column, label, orient = 'y', height=6, crop = None):
+        sns.set_theme(style = 'whitegrid', palette="viridis")
+        plt.figure(figsize=(6, height))
+        plt.title('Porcentaje medio de ventas')
+        temp_table = self.df[[column, 'mean']].groupby(column).mean().sort_values(by='mean', ascending=False).reset_index()
+        temp_table['mean'] = temp_table['mean']*100
+        if crop == 'head':
+            temp_table = temp_table.head(10)
+        elif crop == 'tail':
+            temp_table = temp_table.tail(10)
+        if orient == 'y':
+            plt.ylabel(label)
+            sns.barplot(temp_table, x='mean', y=column, orient = orient, order=temp_table[column])
+        elif orient == 'x':
+            plt.xlabel(label)
+            sns.barplot(temp_table, x=column, y='mean', orient = orient, order=temp_table[column])
+        return plt
 
 def load_data():
     data = pd.read_csv("../data/venta_por_nr.csv")
