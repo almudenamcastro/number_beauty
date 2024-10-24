@@ -1,5 +1,7 @@
 import streamlit as st
-from lib.utils import load_data, get_summary, Explainer
+import streamlit.components.v1 as components
+from streamlit_shap import st_shap
+from lib.utils import Explainer
 
 def app():
    # initialise the number
@@ -26,7 +28,9 @@ def app():
         st.title(number)
         # load data 
         st.markdown('### '+ explainer.beauty_rating(number))
-        # get summary
+        # print plot
+        st.markdown(explainer.features_explain(number))
+        st_shap(explainer.features_plot(number))
 #        summary = get_summary(data, number)
 #        st.write(summary)
 

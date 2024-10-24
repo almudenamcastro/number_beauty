@@ -12,6 +12,7 @@ import xgboost as xgb
 import shap
 from functools import cache
 
+# DATA CLEARNING FUNCTIONS
 def normalise_sales(df):
     
     """
@@ -41,12 +42,12 @@ def get_sales_stats(df):
         df[col] = df[col].fillna(df['median'])
     return df
 
-
 def clean_features(features):
     features = features.drop(columns = ['is_odd', 'start_digit', 'n', 'str_n', 'leap_metric', 'odd_count', 'repeat_sum', 'has_repeated_digits','repeat_max', 'repeat_digit_count', 'dist_digits_count', 'ends_00', 'starts_00', 'is_prime', 'starts_15', 'ends_15'])
     features = pd.get_dummies(features, columns=['repeat_consec_max'], drop_first=True)
     return features
 
+# COMPARE MODELS
 def compare_models(X_train, y_train, X_test, y_test, models = None):
     if models is None:
         models = {
@@ -78,6 +79,7 @@ def compare_models(X_train, y_train, X_test, y_test, models = None):
         print("RMSE", root_mean_squared_error(pred, y_test))
         print("R2 score", model.score(X_test, y_test), "\n")
 
+# NR PROPERTIES DF
 class Nr_properties(pd.DataFrame):
 
     def __init__(self):
@@ -254,6 +256,7 @@ class Nr_properties(pd.DataFrame):
 
         return False    
  
+# APP FUNCTIONS
 class Explainer():
     """
     Initialize the class with the necessary models and data.
@@ -265,19 +268,47 @@ class Explainer():
         self.sales = pd.read_csv('data/lottery_nr_sales.csv')
         self.features = clean_features(pd.read_csv('data/nr_beauty_metrics.csv'))
         self.features_spanish = pd.DataFrame(index=self.features.columns, 
-                                data={'spa': ['contiene el número 13', 'termina en 0', 'termina en 13', 'termina en 5', 'termina en 69', 'termina en 7', 'termina en número primo',
-                                            'empieza en 0', 'empieza en 13', 'empieza en 9',
-                                            'es una fecha', 'es palíndromo', 'es un código postal', 'es una serie',
-                                            'tiene un dígito repetido 2 veces seguidas', 'tiene un dígito repetido 3 veces seguidas', 'tiene un dígito repetido 4 veces seguidas','tiene un dígito repetido 5 veces seguidas']
+                                data={'spa': ['Contiene el número 13', 'Termina en 0', 'Termina en 13', 'Termina en 5', 'Termina en 69', 'Termina en 7', 'Termina en número primo',
+                                            'Empieza en 0', 'Empieza en 13', 'Empieza en 9',
+                                            'Es una fecha', 'Es palíndromo', 'Es un código postal', 'Es una serie',
+                                            'Tiene un dígito repetido 2 veces seguidas', 'Tiene un dígito repetido 3 veces seguidas', 'Tiene un dígito repetido 4 veces seguidas','Tiene un dígito repetido 5 veces seguidas']
                                      })
+    def beauty_rating(self,n): 
+        
+        predicted = self.xgb_model.predict(self.features)[n]*100
+        expected = self.shap_values.base_values[0]*100
+        past_sales = self.sales['mean'].iloc[n]
+        std_dev = self.sales['std'].iloc[n]
 
+        str = ""
+        if std_dev > 0.3:
+            str += 'Este número es un locurón 😵‍💫 \nA veces vende mucho, otras muy poco... la verdad es que no sabemos muy bien por dónde pillarlo\n'
+        else:
+            if past_sales == 1:
+                str += 'Este número es una reina de la belleza 👸 \nSe han vendido todas sus series de los últimos años.\n'
+            elif predicted > 93:
+                str += 'Este número es muy, pero que muy bonito 🥹\nDe lo mejorcito que hay en el bombo.\n'
+            elif predicted > expected:
+                str += 'Este número es bastante bonito 🥰 \nSe espera que obtenga más ventas que la media.\n'
+            elif predicted < 0.15: 
+                str += 'Este número es un adefesio 😳 \nLa gente no lo quiere ni regalao.\n'
+            elif predicted < (expected - 0.2):
+                str +='Este número es más bien feo 🫠 \nSe espera que obtenga menos ventas que la media.\n'
+            else: 
+                str += 'Este número es del montón 🤷\nNi fu ni fa, ni chicha ni limoná.\n'
+            if std_dev > 0.2:
+                str += 'Pero ojo, que cambia bastante de un año para otro.\n'
 
-    def beauty_features_explain(self, n):
+        str+=f'Ha obtenido una puntuación de {predicted:.2f} sobre 100.'
+        return str
+
+    def features_explain(self, n):
         df = pd.DataFrame(index=self.features.columns, data={'coef': self.shap_values.values[n]*100, 'values': self.shap_values.data[n]})
         # sort values by coef and select only above 5 %
         top = df[df['coef'] > 5].sort_values(by='coef', ascending=False)
+        str = ""
         if len(top) > 0:
-            print(f'Estas son algunas características interesantes del número {n}')
+            str += 'Estos son algunos posibles motivos:\n'
             for i in range(len(top)):
                 if top['values'].iloc[i] == False:
                     a = 'no '
@@ -287,36 +318,14 @@ class Explainer():
                     b = 'disminuye'
                 else:
                     b = 'aumenta'
-                print (f'- {a}{self.features_spanish.loc[top.index[i], 'spa']}. Esto {b} las ventas esperadas en un {top['coef'].iloc[i]:.2f} %')
-                
-    def beauty_features_plot(self, n):
-        shap.plots.waterfall(self.shap_values[n])
+                str += f'- {a}{self.features_spanish.loc[top.index[i], 'spa']}. Esto {b} las ventas esperadas en un {top['coef'].iloc[i]:.2f} %\n'
+        else:
+            str += 'No tiene ninguna característica particular'
+        return str        
+    def features_plot(self, n):
+        plot = shap.plots.waterfall(self.shap_values[n])
+        return plot
 
-    def beauty_rating(self,n): 
-        predicted = self.xgb_model.predict(self.features)[n]*100
-        expected = self.shap_values.base_values[0]*100
-        past_sales = self.sales['mean'].iloc[n]
-        std_dev = self.sales['std'].iloc[n]
-
-        str = ""
-
-        if past_sales == 1:
-            str += 'Este número es una reina de la belleza. Ha vendido todas las series de los últimos años\n'
-        elif predicted > 93 and std_dev < 0.15:
-            str += 'Este número es muy, pero que muy bonito\n'
-        elif predicted > expected and std_dev < 0.20:
-            str+='Este número es bastante bonito, y se espera que obtenga más ventas que la media\n'
-        elif predicted < 0.15 and std_dev < 0.15: 
-            str+='Este número es un adefesio. La gente no lo quiere ni regalao\n'
-        elif predicted < (expected - 0.2) and std_dev < 0.2:
-            str+='Este número es más bien feo. Se espera que obtenga menos ventas que la media\n'
-        elif std_dev > 0.3:
-            str+='Este número es un locurón. A veces vende mucho, otras muy poco... no sabemos muy bien por dónde pillarlo\n'
-        else: 
-            str+='Este número es del montón\n' 
-
-        str+=f'Ha obtenido una puntuación de {predicted:.2f} sobre 100.'
-        return str
 
 
 
