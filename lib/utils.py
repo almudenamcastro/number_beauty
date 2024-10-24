@@ -1,6 +1,8 @@
 import pandas as pd
 import sympy 
 import pickle
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 ## ML models
 from sklearn.tree import DecisionTreeRegressor
@@ -14,29 +16,16 @@ from functools import cache
 
 # DATA CLEARNING FUNCTIONS
 def normalise_sales(df):
-    
-    """
-    Normalize sales for each year to its maximum value.    
-    Parameters
-    ----------
-    df : pd.DataFrame
-        DataFrame with columns 'n', 'year', and 'sales'.
-    
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with normalized sales.
-    """
     df = df.pivot(index = 'n', columns='year', values='sales')
     for col in df.columns:
         df[col] = df[col] / df[col].max()
     return df
 
 def get_sales_stats(df): 
-    df_aux = df.copy()
+    df_aux = df[range(2011, 2020)].copy()
 
     df['median'] = df_aux.median(axis=1)
-    df['mean']=df_aux.mean(axis=1)
+    df['mean'] = df_aux.mean(axis=1)
     df['std'] = df_aux.std(axis=1)
     for col in df.columns:
         df[col] = df[col].fillna(df['median'])
@@ -46,6 +35,19 @@ def clean_features(features):
     features = features.drop(columns = ['is_odd', 'start_digit', 'n', 'str_n', 'leap_metric', 'odd_count', 'repeat_sum', 'has_repeated_digits','repeat_max', 'repeat_digit_count', 'dist_digits_count', 'ends_00', 'starts_00', 'is_prime', 'starts_15', 'ends_15'])
     features = pd.get_dummies(features, columns=['repeat_consec_max'], drop_first=True)
     return features
+
+def hbarplot(df, columns, target, height, crop = None):
+    sns.set_theme(style = 'whitegrid', palette="gray", rc={'figure.figsize':(6,height)})
+    for column in columns:
+        temp_table = df[[column, target]].groupby(column).mean().sort_values(by=target, ascending=False).reset_index()
+        if crop == 'head':
+            temp_table = temp_table.head(10)
+        elif crop == 'tail':
+            temp_table = temp_table.tail(10)
+        sns.barplot(temp_table, x=target,y=column, orient = 'y', order=temp_table[column])
+        plt.show()
+
+    sns.set_theme(rc={'figure.figsize':(5,4)})
 
 # COMPARE MODELS
 def compare_models(X_train, y_train, X_test, y_test, models = None):
@@ -185,7 +187,8 @@ class Nr_properties(pd.DataFrame):
     
     def prop_ends_prime(self, n):
         '''ends_prime'''
-        return sympy.isprime(n % 100)
+        lt = n%100
+        return sympy.isprime(lt) and lt > 7 
     
     ## STRING METHODS
     ## * REPEATED DIGITS PROPERTIES
@@ -303,9 +306,9 @@ class Explainer():
         return str
 
     def features_explain(self, n):
-        df = pd.DataFrame(index=self.features.columns, data={'coef': self.shap_values.values[n]*100, 'values': self.shap_values.data[n]})
+        df = pd.DataFrame(index=self.features.columns, data={'coef': self.shap_values.values[n]*100, 'impact': abs(self.shap_values.values[n]*100),'values': self.shap_values.data[n]})
         # sort values by coef and select only above 5 %
-        top = df[df['coef'] > 5].sort_values(by='coef', ascending=False)
+        top = df[df['impact'] > 5].sort_values(by='impact', ascending=False)
         str = ""
         if len(top) > 0:
             str += 'Estos son algunos posibles motivos:\n'

@@ -37,6 +37,7 @@ def app():
 
 def about():
     # read article.md file
+    
     with open('article.md') as f:
         st.markdown(f.read())
 
@@ -45,7 +46,7 @@ def main():
         page_title="prettymapp", page_icon="🖼️"
         )    
     st.markdown('#### Números bonitos')
-    pg = st.navigation({'Números bonitos': [st.Page(app, title="Comprueba tu número"), st.Page(about, title='¿Qué es esto?')]})
+    pg = st.navigation({'Números bonitos': [st.Page(app, title="Comprueba tu número"), st.Page('article.py', title='¿Qué es esto?')]})
     pg.run()
 
 if __name__ == '__main__':
