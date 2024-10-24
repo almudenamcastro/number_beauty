@@ -29,5 +29,5 @@ with col1:
     st.markdown('**Números acados en 13**\n¡Se venden casi todo!')
     st.pyplot(stats.plot('ends_13', 'Termina en 13','x'))
 with col2:
-    st.markdown('**Números que empiezan en 13**\nSe venden en un 90%')
+    st.markdown('**Números que empiezan en 13**\nSe venden el 90%')
     st.pyplot(stats.plot('starts_13', 'Empieza en 13', 'x'))
