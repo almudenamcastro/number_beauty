@@ -13,14 +13,17 @@ st.markdown('''
 
 \nLa idea aversión hacia estos "números feos" se ha vuelto tan común que en algunas loterías se han convertido en un fetiche. Y es curioso, desde un punto de vista matemático, **su suerte no difiere en absoluto de la de sus hermanos más guapos**. 
 
-\n¿En qué se basa entonces esta curiosa superstición? Y, sobre todo, ¿qué es lo que hace que un número nos parezca "feo" o más "bonito"?
+\n¿En qué se basa entonces esta curiosa superstición? Y, sobre todo, ¿qué es lo que hace que un número nos parezca "feo" o más "bonito"? 
 
 \nHemos mirado a las ventas de lotería de los últimos años para entender qué se vende más y qué menos. Que es lo que hace que un número nos parezca "bonito", o no queramos tocarlo ni con un palo. Esto es lo que hemos encontrado. 
 
+''')            
+st.markdown('''
 ### Los parámetros de la belleza numérica: 
 
-#### El 13, un número de la buena suerte:
-       
+#### - El 13, un número de la buena suerte:
+Que un número termine en 13 es, prácticamente, garantía de venta. En promedio se venden el 98,77% de los billetes con esta terminación. 
+Al inicio del número tiene un poco menos de impacto, pero la diferencia sigue siendo significativa. Se venden el 87,83% que empiezan por 13.         
 ''')
 st.write("")
 col1, col2 = st.columns(2)
@@ -29,5 +32,32 @@ with col1:
     st.markdown('**Números acados en 13**\n¡Se venden casi todo!')
     st.pyplot(stats.plot('ends_13', 'Termina en 13','x'))
 with col2:
-    st.markdown('**Números que empiezan en 13**\nSe venden el 90%')
+    st.markdown('**Números que empiezan en 13**\n')
     st.pyplot(stats.plot('starts_13', 'Empieza en 13', 'x'))
+st.markdown('''
+#### - Los ceros malditos:
+Desconfiamos de los ceros a la izquierda (son unos inútiles). Pero tampoco nos gustan a la derecha, quizás porque resultan en números demasiado redondos.          
+''')
+st.write("")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown('**Números acados en 0**')
+    st.pyplot(stats.plot('ends_0', 'Termina en 0','x'))
+with col2:
+    st.markdown('**Números que empiezan en 0**\n')
+    st.pyplot(stats.plot('starts_0', 'Empieza en 0', 'x'))
+
+st.markdown('''
+#### - No nos gusta la repetición:
+Pero nos flipa la simetría perfecta. Los números con 5 cifras repetidas, como el 000000 o el 999999 se venden en un porcentaje mayor al 98%.          
+''')
+st.write("")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown('**Números acados en 0**')
+    st.pyplot(stats.plot('ends_0', 'Termina en 0','x'))
+with col2:
+    st.markdown('**Números que empiezan en 0**\n')
+    st.pyplot(stats.plot('starts_0', 'Empieza en 0', 'x'))
