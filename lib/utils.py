@@ -23,7 +23,6 @@ def normalise_sales(df):
 
 def get_sales_stats(df): 
     df_aux = df[range(2011, 2020)].copy()
-
     df['median'] = df_aux.median(axis=1)
     df['mean'] = df_aux.mean(axis=1)
     df['std'] = df_aux.std(axis=1)
@@ -32,7 +31,7 @@ def get_sales_stats(df):
     return df
 
 def clean_features(features):
-    features = features.drop(columns = ['is_odd', 'start_digit', 'n', 'str_n', 'leap_metric', 'odd_count', 'repeat_sum', 'has_repeated_digits','repeat_max', 'repeat_digit_count', 'dist_digits_count', 'ends_00', 'starts_00', 'is_prime', 'starts_15', 'ends_15'])
+    features = features.drop(columns = ['n', 'str_n', 'is_odd', 'start_digit', 'end_digit', 'end_2digits', 'leap_metric', 'odd_count', 'repeat_sum', 'has_repeated_digits','repeat_max', 'repeat_digit_count', 'dist_digits_count', 'ends_00', 'starts_00', 'is_prime', 'starts_15', 'ends_15'])
     features = pd.get_dummies(features, columns=['repeat_consec_max'], drop_first=True)
     return features
 
@@ -46,7 +45,6 @@ def hbarplot(df, columns, target, height, crop = None):
             temp_table = temp_table.tail(10)
         sns.barplot(temp_table, x=target,y=column, orient = 'y', order=temp_table[column])
         plt.show()
-
     sns.set_theme(rc={'figure.figsize':(5,4)})
 
 # COMPARE MODELS
@@ -123,6 +121,13 @@ class Nr_properties(pd.DataFrame):
         return sum([int(nr) % 2 for nr in str(n)])
 
     ## * LAST DIGITS PROPERTIES
+    def prop_end_digit(self, n):
+        '''end_digit'''
+        return n % 10
+
+    def prop_end_2digits(self,n):
+        '''end_2digits'''
+        return n%100
     def prop_ends_0(self, n):
         '''ends_0'''
         return n % 10 == 0
@@ -337,7 +342,9 @@ class Stats():
     def plot(self, column, label, orient = 'y', height=6, crop = None):
         sns.set_theme(style = 'whitegrid', palette="viridis")
         plt.figure(figsize=(6, height))
-        plt.title('Porcentaje medio de ventas')
+
+        # add bar labels
+#        plt.bar_label(container=plt.containers[0], fmt='%.2f%%')
         temp_table = self.df[[column, 'mean']].groupby(column).mean().sort_values(by='mean', ascending=False).reset_index()
         temp_table['mean'] = temp_table['mean']*100
         if crop == 'head':
@@ -346,9 +353,12 @@ class Stats():
             temp_table = temp_table.tail(10)
         if orient == 'y':
             plt.ylabel(label)
+            plt.xlabel('Porcentaje de ventas')
             sns.barplot(temp_table, x='mean', y=column, orient = orient, order=temp_table[column])
+
         elif orient == 'x':
             plt.xlabel(label)
+            plt.ylabel('Porcentaje de ventas')
             sns.barplot(temp_table, x=column, y='mean', orient = orient, order=temp_table[column])
         return plt
 
