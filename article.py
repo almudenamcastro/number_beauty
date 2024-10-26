@@ -41,16 +41,16 @@ Desconfiamos de los ceros a la izquierda (son unos inútiles). Pero tampoco nos 
 st.write("")
 col1, col2 = st.columns(2)
 
-with col1:
-    st.markdown('**Números acados en 0**')
-    st.pyplot(stats.plot('ends_0', 'Termina en 0','x'))
 with col2:
-    st.markdown('**Números que empiezan en 0**\n')
-    st.pyplot(stats.plot('starts_0', 'Empieza en 0', 'x'))
+    st.markdown('**Ventas en función del último dígito**')
+    st.pyplot(stats.plot('end_digit', 'Último dígito','x'))
+with col1:
+    st.markdown('**Ventas en función del primer dígito**\n')
+    st.pyplot(stats.plot('start_digit', 'Primer dígito', 'x'))
 
 st.markdown('''
 #### - No nos gusta la repetición:
-No nos gustan las repeticiones. Pero nos flipa la simetría perfecta. Los números con 5 cifras repetidas, como el 000000 o el 999999 se venden en un porcentaje mayor al 98%.          
+No nos gustan las repeticiones. Pero nos flipa la simetría perfecta. Los números con 5 cifras repetidas, como el 000000 o el 999999 se venden en un porcentaje mayor al 90%.          
 ''')
 st.write("")
 col1, col2 = st.columns(2)
@@ -60,3 +60,18 @@ with col1:
     st.pyplot(stats.plot('repeat_consec_max', 'Números repetidos','x'))
 with col2:
     st.markdown('** **\n')
+
+st.markdown('''
+#### - La belleza del 5 y el 7.
+El 5 y el 7 son números bonitos. En general, su presencia mejora las ventas. Pero el efecto es especialmente significativo cuando se enceuntran en el dígito final.      
+''')
+
+st.write("")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown('**Números acabados en 5**')
+    st.pyplot(stats.plot('ends_5', 'Termina en 5','x'))
+with col2:
+    st.markdown('**Números acabados en 7**')
+    st.pyplot(stats.plot('ends_7', 'Termina en 7','x'))

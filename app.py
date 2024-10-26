@@ -43,7 +43,7 @@ def about():
 
 def main():
     st.set_page_config(
-        page_title="prettymapp", page_icon="🖼️"
+        page_title="beautifulnumbers", page_icon="🖼️"
         )    
     st.markdown('#### Números bonitos')
     pg = st.navigation({'Números bonitos': [st.Page(app, title="Comprueba tu número"), st.Page('article.py', title='¿Qué es esto?')]})
